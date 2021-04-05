@@ -1,0 +1,11 @@
+[package]
+name = "webcam-tui"
+version = "0.1.0"
+authors = ["Leonard Hecker <leonard@hecker.io>"]
+edition = "2018"
+
+[dependencies]
+windows = "0.7"
+
+[build-dependencies]
+windows = "0.7"
