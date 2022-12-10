@@ -3,10 +3,7 @@ use windows::{
     Foundation::{AsyncActionCompletedHandler, AsyncStatus, TypedEventHandler, Uri},
     Graphics::DirectX::DirectXPixelFormat,
     Graphics::Imaging::{
-        BitmapAlphaMode,
-        BitmapBufferAccessMode,
-        BitmapPixelFormat,
-        SoftwareBitmap,
+        BitmapAlphaMode, BitmapBufferAccessMode, BitmapPixelFormat, SoftwareBitmap,
     },
     Media::Core::MediaSource,
     Media::Playback::MediaPlayer,
