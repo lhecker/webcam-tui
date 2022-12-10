@@ -2,10 +2,15 @@
 name = "webcam-tui"
 version = "0.1.0"
 authors = ["Leonard Hecker <leonard@hecker.io>"]
-edition = "2018"
+edition = "2021"
 
-[dependencies]
-windows = "0.7"
-
-[build-dependencies]
-windows = "0.7"
+[dependencies.windows]
+version = "0.43.0"
+features = [
+    "Foundation",
+    "Graphics_DirectX_Direct3D11",
+    "Graphics_Imaging",
+    "Media_Core",
+    "Media_Playback",
+    "Win32_System_WinRT",
+]
