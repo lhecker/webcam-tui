@@ -12,5 +12,7 @@ features = [
     "Graphics_Imaging",
     "Media_Core",
     "Media_Playback",
+    "Win32_Foundation",
+    "Win32_System_Console",
     "Win32_System_WinRT",
 ]

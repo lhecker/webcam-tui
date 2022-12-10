@@ -8,12 +8,18 @@ use windows::{
     Media::Core::MediaSource,
     Media::Playback::MediaPlayer,
     Media::VideoFrame,
+    Win32::System::Console::SetConsoleCtrlHandler,
     Win32::System::WinRT::IMemoryBufferByteAccess,
 };
 
 use std::fmt::Write as _;
 use std::io::{Read, Write};
 use std::ptr;
+use windows::Win32::Foundation::BOOL;
+
+extern "system" {
+    fn _getch_nolock() -> i32;
+}
 
 fn main() -> Result<()> {
     let path = std::env::args().nth(1).unwrap_or_default();
@@ -24,20 +30,60 @@ fn main() -> Result<()> {
     let uri = Uri::CreateUri(&HSTRING::from(&path))?;
     let source = MediaSource::CreateFromUri(&uri)?;
 
-    const FACTOR: i32 = 8;
-    const WIDTH: i32 = 16 * FACTOR;
-    const HEIGHT: i32 = 9 * FACTOR;
+    // A quick hack (for demo purposes) to get the window size via VT.
+    let (width, height): (i32, i32) = {
+        print!("\x1b[9999;9999H\x1b[6n");
+        std::io::stdout().flush().unwrap();
+
+        let mut buf = [0u8; 128];
+        let mut len = 0usize;
+
+        loop {
+            let ch = unsafe { _getch_nolock() } as u8;
+            buf[len] = ch;
+            len += 1;
+            if ch == b'R' {
+                break;
+            }
+        }
+
+        let (h, w) = unsafe { std::str::from_utf8_unchecked(&buf[..len]) }
+            .strip_prefix("\x1b[")
+            .unwrap()
+            .strip_suffix("R")
+            .unwrap()
+            .split_once(';')
+            .unwrap();
+
+        (w.parse().unwrap(), h.parse().unwrap())
+    };
+
+    // Since we use use "square" pixels via U+2580 we have twice the vertical resolution.
+    let height = height * 2;
+
+    print!("\x1b[?1049h\x1b[?25l");
+    std::io::stdout().flush().unwrap();
+
+    unsafe {
+        extern "system" fn foo(_: u32) -> BOOL {
+            print!("\x1b[?25h\x1b[?1049l");
+            std::io::stdout().flush().unwrap();
+            BOOL(0)
+        }
+
+        SetConsoleCtrlHandler(Some(foo), BOOL(1));
+    };
 
     let video_frame = VideoFrame::CreateAsDirect3D11SurfaceBacked(
         DirectXPixelFormat::B8G8R8X8UIntNormalized,
-        WIDTH,
-        HEIGHT,
+        width,
+        height,
     )?;
 
     let software_bitmap = SoftwareBitmap::CreateWithAlpha(
         BitmapPixelFormat::Bgra8,
-        WIDTH,
-        HEIGHT,
+        width,
+        height,
         BitmapAlphaMode::Ignore,
     )?;
     let software_video_frame = VideoFrame::CreateWithSoftwareBitmap(&software_bitmap)?;
